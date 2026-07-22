@@ -75,7 +75,7 @@ def spawn_session():
 
     # 4. Spawn Cloudflare Quick Tunnel via pycloudflared
     tunnel = try_cloudflare(port=local_port)
-    tunnel_url = tunnel.tunnel_url
+tunnel_url = tunnel.tunnel
 
     ACTIVE_SESSIONS[session_name] = {
         "session_id": session_name,
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     print("[*] Launching Cloudflare Tunnel for Management Dashboard...")
     ui_tunnel = try_cloudflare(port=UI_PORT)
     print(f"============================================================")
-    print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel_url}")
+    print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel}")
     print(f"================================================================\n")
     
     app.run(host="0.0.0.0", port=UI_PORT)
