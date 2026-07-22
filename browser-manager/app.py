@@ -57,7 +57,7 @@ def spawn_session():
     session_name = data.get("name", f"session-{int(time.time())}")
     
     # 1. Allocate dynamic free host port
-    local_port = portpicker.pick_unused_port()
+    local_port = pick_unused_port()
     
     # 2. Host persistence directory for cookies/history
     data_dir = f"/var/docker/firefox/data/{session_name}"
@@ -81,6 +81,7 @@ def spawn_session():
     # 4. Spawn Cloudflare Quick Tunnel via pycloudflared
     tunnel = try_cloudflare(port=local_port)
     tunnel_url = tunnel.tunnel
+tunnel_url = tunnel.tunnel
 
     ACTIVE_SESSIONS[session_name] = {
         "session_id": session_name,
@@ -114,6 +115,7 @@ if __name__ == "__main__":
     print("[*] Launching Cloudflare Tunnel for Management Dashboard...")
     ui_tunnel = try_cloudflare(port=UI_PORT)
     print(f"============================================================")
+    print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel}")
     print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel}")
     print(f"================================================================\n")
     
