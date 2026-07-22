@@ -1,7 +1,7 @@
 import os
 import time
 import json
-import portpicker
+import socket
 import docker
 from flask import Flask, render_template, request, jsonify, redirect
 from pycloudflared import try_cloudflare
@@ -15,6 +15,11 @@ ACTIVE_SESSIONS = {}
 
 POLICIES_PATH = "/opt/browser-manager/policies.json"
 EXTENSIONS_DIR = "/opt/browser-manager/extensions"
+
+def pick_unused_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("", 0))
+        return sock.getsockname()[1]
 
 def ensure_extension_policies():
     """Generates Firefox Enterprise Policy enforcing auto-installation of extensions."""
@@ -75,7 +80,7 @@ def spawn_session():
 
     # 4. Spawn Cloudflare Quick Tunnel via pycloudflared
     tunnel = try_cloudflare(port=local_port)
-    tunnel_url = tunnel.tunnel_url
+    tunnel_url = tunnel.tunnel
 
     ACTIVE_SESSIONS[session_name] = {
         "session_id": session_name,
@@ -109,7 +114,7 @@ if __name__ == "__main__":
     print("[*] Launching Cloudflare Tunnel for Management Dashboard...")
     ui_tunnel = try_cloudflare(port=UI_PORT)
     print(f"============================================================")
-    print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel_url}")
+    print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel}")
     print(f"================================================================\n")
     
     app.run(host="0.0.0.0", port=UI_PORT)
