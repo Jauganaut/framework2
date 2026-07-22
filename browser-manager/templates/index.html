@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Browser Orchestrator</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: #121212; 
+            color: #e0e0e0; 
+            margin: 2rem; 
+        }
+        .card { 
+            background: #1e1e1e; 
+            padding: 1.5rem; 
+            border-radius: 8px; 
+            margin-bottom: 1rem; 
+            border: 1px solid #333; 
+        }
+        button { 
+            background: #0070f3; 
+            color: white; 
+            border: none; 
+            padding: 0.6rem 1.2rem; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        button.danger { 
+            background: #d32f2f; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 1rem; 
+        }
+        th, td { 
+            text-align: left; 
+            padding: 0.8rem; 
+            border-bottom: 1px solid #333; 
+        }
+        a { 
+            color: #4dabf7; 
+            text-decoration: none; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Firefox Instance Manager</h1>
+    
+    <div class="card">
+        <h3>Launch New Isolated Browser</h3>
+        <input type="text" id="sessionName" placeholder="Session Label (e.g., Target-A)" 
+               style="padding: 0.5rem; width: 250px;">
+        <button onclick="spawnSession()">Spawn Instance</button>
+    </div>
+
+    <div class="card">
+        <h3>Active Sessions</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>Local Port</th>
+                    <th>Tunnel Public URL</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="sessionTable">
+                {% for id, session in sessions.items() %}
+                <tr>
+                    <td>{{ session.session_id }}</td>
+                    <td>{{ session.local_port }}</td>
+                    <td><a href="{{ session.tunnel_url }}" target="_blank">{{ session.tunnel_url }}</a></td>
+                    <td>
+                        <button class="danger" onclick="terminateSession('{{ session.session_id }}')">Kill</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function spawnSession() {
+            const name = document.getElementById('sessionName').value;
+            const res = await fetch('/api/spawn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name })
+            });
+            if (res.ok) window.location.reload();
+        }
+
+        async function terminateSession(id) {
+            const res = await fetch(`/api/terminate/${id}`, { method: 'POST' });
+            if (res.ok) window.location.reload();
+        }
+    </script>
+</body>
+</html>
