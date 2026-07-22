@@ -81,7 +81,6 @@ def spawn_session():
     # 4. Spawn Cloudflare Quick Tunnel via pycloudflared
     tunnel = try_cloudflare(port=local_port)
     tunnel_url = tunnel.tunnel
-tunnel_url = tunnel.tunnel
 
     ACTIVE_SESSIONS[session_name] = {
         "session_id": session_name,
