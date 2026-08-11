@@ -1,0 +1,7 @@
+targetts/BYD_osint.md
+targetts/Geely_osint.md
+targetts/geely_osint.txt
+targetts/SAIC_osint.md
+
+# Ignore Himalaya artifacts
+himalaya*

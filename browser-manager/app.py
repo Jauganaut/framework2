@@ -32,7 +32,7 @@ def ensure_extension_policies():
             }
         }
     }
-    
+
     # If custom .xpi files exist in EXTENSIONS_DIR, force install them
     if os.path.exists(EXTENSIONS_DIR):
         for file in os.listdir(EXTENSIONS_DIR):
@@ -55,15 +55,16 @@ def index():
 def spawn_session():
     data = request.get_json() or {}
     session_name = data.get("name", f"session-{int(time.time())}")
-    
+
     # 1. Allocate dynamic free host port
     local_port = pick_unused_port()
-    
+
     # 2. Host persistence directory for cookies/history
     data_dir = f"/var/docker/firefox/data/{session_name}"
     os.makedirs(data_dir, exist_ok=True)
 
     # 3. Spawn Docker Container
+    kiosk_mode = os.environ.get("KIOSK", "1")
     container = docker_client.containers.run(
         image="jlesage/firefox:latest",
         name=f"firefox-{session_name}",
@@ -74,7 +75,7 @@ def spawn_session():
             POLICIES_PATH: {'bind': '/etc/firefox/policies/policies.json', 'mode': 'ro'},
             EXTENSIONS_DIR: {'bind': EXTENSIONS_DIR, 'mode': 'ro'}
         },
-        environment={"ENABLE_DARK_MODE": "1"},
+        environment={"ENABLE_DARK_MODE": "1", "KIOSK": kiosk_mode},
         shm_size="2g"
     )
 
@@ -101,21 +102,20 @@ def terminate_session(session_id):
             container.remove()
         except Exception as e:
             print(f"Error stopping container: {e}")
-        
+
         del ACTIVE_SESSIONS[session_id]
         return jsonify({"status": "success", "message": f"Terminated {session_id}"})
     return jsonify({"status": "error", "message": "Session not found"}), 404
 
 if __name__ == "__main__":
     ensure_extension_policies()
-    
+
     # Tunnel the Web UI Manager itself
     UI_PORT = 5000
     print("[*] Launching Cloudflare Tunnel for Management Dashboard...")
     ui_tunnel = try_cloudflare(port=UI_PORT)
     print(f"============================================================")
     print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel}")
-    print(f" MANAGEMENT DASHBOARD ACCESSIBLE AT: {ui_tunnel.tunnel}")
-    print(f"================================================================\n")
-    
+    print(f"============================================================\n")
+
     app.run(host="0.0.0.0", port=UI_PORT)
