@@ -7,11 +7,27 @@ from flask import Flask, render_template, request, jsonify, redirect
 from pycloudflared import try_cloudflare
 
 app = Flask(__name__)
-docker_client = docker.from_env()
+
+def make_docker_client():
+    try:
+        return docker.from_env()
+    except Exception as initial_error:
+        fallback_url = 'npipe:////./pipe/dockerDesktopLinuxEngine'
+        print(f"[WARN] docker.from_env() failed: {initial_error}")
+        print(f"[INFO] attempting Docker Desktop named pipe fallback: {fallback_url}")
+        try:
+            return docker.DockerClient(base_url=fallback_url)
+        except Exception as fallback_error:
+            raise RuntimeError(
+                "Failed to initialize Docker client from environment and fallback path. "
+                f"Initial error: {initial_error}; fallback error: {fallback_error}"
+            ) from fallback_error
 
 # In-memory store for active sessions
 # Schema: { session_id: { "port": 5801, "tunnel_url": "https://...", "container_id": "..." } }
 ACTIVE_SESSIONS = {}
+
+docker_client = make_docker_client()
 
 POLICIES_PATH = "/opt/browser-manager/policies.json"
 EXTENSIONS_DIR = "/opt/browser-manager/extensions"
